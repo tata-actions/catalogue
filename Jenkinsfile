@@ -1,150 +1,17 @@
-pipeline {
-    agent {
-        node {
-            label 'AGENT-1'
-        }
-    }
+@Library('jenkins-shared-library') _
 
-    environment {
-        COURSE     = "jenkins"
-        appversion = ""
-        ACCT_Id    = "426130536166"
-        PROJECT    = "roboshop"
-        COMPONENT  = "catalogue"
-    }
+def configMap = [
+    project: "roboshop",
+    component: "catalogue"
+]
 
-    options {
-        // timeout(time: 10, unit: 'SECONDS')
-        disableConcurrentBuilds()
-    }
-
-    stages {
-
-        stage('Read version') {
-            steps {
-                script {
-                    def packageJSON = readJSON file: 'package.json'
-                    appversion = packageJSON.version
-
-                    echo "package version ${appversion}"
-
-                    sh """
-                        pwd
-                        ls -l
-                        whoami
-                    """
-                }
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    sh """
-                        npm install
-                    """
-                }
-            }
-        }
-
-        stage('Unit Testing') {
-            steps {
-                script {
-                    sh """
-                        npm test
-                    """
-                }
-            }
-        }
-
-        stage('Sonar Scan') {
-            environment {
-                def scannerHome = tool 'sonar-8.0'
-            }
-            steps {
-                script {
-                    withSonarQubeEnv('sonar-server') {
-                        sh "${scannerHome}/bin/sonar-scanner"
-                    }
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 1, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-
-        stage('Trivy Scan') {
-            steps {
-                script {
-                    sh """
-                        trivy image \
-                        --scanners vuln \
-                        --severity HIGH,CRITICAL,MEDIUM \
-                        --pkg-types os \
-                        --exit-code 1 \
-                        --format table \
-                        ${ACC_ID}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appVersion}
-                    """
-                }
-            }
-        }
-
-        stage('Build image') {
-            steps {
-                script {
-                    withAWS(region: 'us-east-1', credentials: 'aws-creds') {
-                        sh """
-                            aws ecr get-login-password --region us-east-1 | \
-                            docker login --username AWS --password-stdin ${ACCT_Id}.dkr.ecr.us-east-1.amazonaws.com
-
-                            docker build -t ${Acct_Id}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appversion} .
-
-                            docker images
-
-                            docker push ${Acct_Id}.dkr.ecr.us-east-1.amazonaws.com/${PROJECT}/${COMPONENT}:${appversion}
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Deploy') {
-            input {
-                message "Should we continue?"
-                ok "Yes, we should."
-                submitter "alice,bob"
-                parameters {
-                    string(
-                        name: 'PERSON',
-                        defaultValue: 'Mr Jenkins',
-                        description: 'Who should I say hello to?'
-                    )
-                }
-            }
-            steps {
-                echo "Deploying"
-                cleanWs()
-            }
-        }
-    }
-
-    post {
-        always {
-            echo "i will come always... HELLO WORLD"
-        }
-        success {
-            echo "I will run if success"
-        }
-        failure {
-            echo "I will run if failure"
-        }
-        aborted {
-            echo "pipeline will be aborted"
-        }
-    }
+echo "Going to execute Jenkins shared library"
+// if branch is not equal to main, then run CI pipeline
+if ( ! env.BRANCH_NAME.equalsIgnoreCase('main') ){
+    nodeJSEKSPipeline(configMap)
 }
+else {
+    echo "Please follow the CR process"
+}
+
+/* Run the NodeJS CI pipeline for this project/component.”

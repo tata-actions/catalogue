@@ -14,4 +14,4 @@ else {
     echo "Please follow the CR process"
 }
 
-/* Run the NodeJS CI pipeline for this project/component.”
+/* Run the NodeJS CI pipeline for this project/component.”*/

@@ -1,8 +1,10 @@
-name: feature-pipeline-catalogu
+name: feature-pipeline-catalogue
+
 on: [push]
+
 jobs:
   feature-pipeline:
-    uses: tata-actions/kanakavignesh14/workflows/.github/workflows/feature-nodejs-pipeline.yaml@main 
+    uses: tata-actions/workflows/.github/workflows/feature-nodejs-pipeline.yaml@main
     with:
       project: roboshop
       component: catalogue

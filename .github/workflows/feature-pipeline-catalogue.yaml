@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   feature-pipeline:
-    if: github.ref != 'refs/head/main'
+    if: github.ref != 'refs/heads/main'
     uses: tata-actions/workflows/.github/workflows/feature-nodejs-pipeline.yaml@main
     with:
       project: roboshop
@@ -17,7 +17,7 @@ jobs:
     secrets: inherit  
 
   dev-pipeline:
-    if: github.ref == 'refs/head/main'
+    if: github.ref == 'refs/heads/main'
     uses: tata-actions/workflows/.github/workflows/dev-nodejs-pipeline.yaml@main
     with:
       project: roboshop

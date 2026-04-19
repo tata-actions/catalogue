@@ -1,4 +1,4 @@
-pipeline {
+ipipeline {
     agent {
         node {
             label 'AGENT-i1'

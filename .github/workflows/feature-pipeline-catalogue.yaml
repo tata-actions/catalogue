@@ -13,7 +13,7 @@ jobs:
     with:
       project: roboshop
       component: catalogue
-      environment: dev@
+      environment: dev@tata
     secrets: inherit  
 
   dev-pipeline:
